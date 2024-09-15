@@ -1,0 +1,29 @@
+# COMPILE ISTRUCTIONS:
+
+# Clean the code and remove old binaries/compilation artefact 
+# ./fbt -c fap_clippy_app
+
+# Compile FAP
+# ./fbt fap_clippy_app
+
+# Run application directly inside the Flip.x0
+# ./fbt launch APPSRC=clippy_app
+
+App(
+    # Foldername of the application
+    appid="clippy_app",
+    # name will be show on the Flip.x0 browser
+    name="Clippy App",
+    apptype=FlipperAppType.EXTERNAL,
+    # Main function (entry point) of the application  
+    entry_point="clippy_app_main",
+    requires=[
+        "gui",
+        "dialogs",
+    ],
+    stack_size=2 * 1024,
+    fap_description="Implements a shared clipboard",
+    fap_version="0.1",
+    # Where the application will be stored into the Flip.x0
+    fap_category="USB",
+)
