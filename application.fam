@@ -16,7 +16,7 @@ App(
     name="Clippy App",
     apptype=FlipperAppType.EXTERNAL,
     # Main function (entry point) of the application  
-    entry_point="clippy_app_main",
+    entry_point="clippy_app",
     requires=[
         "gui",
         "dialogs",

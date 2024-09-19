@@ -1,85 +1,90 @@
-/*********************************************
- * Flip.x0 Tutorial
- *                                by M1ch3al
- * 0x01 - my first app
- ********************************************
- */
-
+#include "applications_user/clippy/clippy_app.h"
+#include "gui/modules/loading.h"
 #include <furi.h>
 #include <gui/gui.h>
 #include "clippy_app_i.h"
 
-// This function is for drawing the screen GUI, everytime
-// the Flip.x0 refresh the display
-static void draw_callback(Canvas* canvas, void* ctx) {
-    UNUSED(ctx);
-    // This istruction no need details :)
-    canvas_clear(canvas);
-
-    // Set the font, the position and the content of the label
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 32, 13, "Clippy");
-
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 15, 40, " press back to exit FAP");
-
-    canvas_draw_line(canvas, 2, 23, 126, 23);
+static bool clippy_app_custom_event_callback(void* context, uint32_t event) {
+    furi_assert(context);
+    ClippyApp* app = context;
+    return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-// This function is an handler for the user input (the buttons on the right
-// of the Flip.x0 used for navigate, confirm and back)
-static void input_callback(InputEvent* input_event, void* ctx) {
-    furi_assert(ctx);
-    FuriMessageQueue* event_queue = ctx;
-    furi_message_queue_put(event_queue, input_event, FuriWaitForever);
+static bool clippy_app_back_event_callback(void* context) {
+    furi_assert(context);
+    ClippyApp* app = context;
+    return scene_manager_handle_back_event(app->scene_manager);
 }
 
-// Main entry of the application as defined inside the application.fam
-int32_t clippy_app_main(void* p) {
-    UNUSED(p);
+static void clippy_app_tick_event_callback(void* context) {
+    furi_assert(context);
+    ClippyApp* app = context;
+    scene_manager_handle_tick_event(app->scene_manager);
+}
 
-    // Current event of type InputEvent
-    InputEvent event;
+ClippyApp* clippy_app_alloc(char* arg) {
+    ClippyApp* app = malloc(sizeof(ClippyApp));
 
-    // Event queue for 8 elements of size InputEvent
-    FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
+    app->file_path = furi_string_alloc();
 
-    // ViewPort is need to draw the GUI
-    ViewPort* view_port = view_port_alloc();
-
-    // we give to this [view_port_draw_callback_set] the function defined
-    // before (draw_callback) for drawing the GUI on the Flip.x0 display
-    view_port_draw_callback_set(view_port, draw_callback, NULL);
-
-    // The same concept is with [view_port_input_callback_set] associated to the (input_callback)
-    // function defined before.
-    view_port_input_callback_set(view_port, input_callback, event_queue);
-
-    // You need to create a GUI structure and associate it to the viewport previously defined
-    Gui* gui = furi_record_open(RECORD_GUI);
-    gui_add_view_port(gui, view_port, GuiLayerFullscreen);
-
-    // Infinite loop...(like arduino or similar)
-    while(true) {
-        // We continue (indefinitely) to get out of the queue all the events stacked inside
-        furi_check(furi_message_queue_get(event_queue, &event, FuriWaitForever) == FuriStatusOk);
-
-        // If the event from the queue is the press of the back button, we exit from the loop
-        if(event.key == InputKeyBack) {
-            break;
-        }
+    if(arg != NULL) {
+        furi_string_set_str(app->file_path, arg);
+    } else {
+        furi_string_set_str(app->file_path, CLIPPY_APP_BASE_FOLDER);
     }
 
-    // once exit from the loop, we need to free resources:
-    // clear all the element inside the queue
-    furi_message_queue_free(event_queue);
+    app->gui = furi_record_open(RECORD_GUI);
+    app->fs_api = furi_record_open(RECORD_STORAGE);
+    app->dialogs = furi_record_open(RECORD_DIALOGS);
 
-    // We remove the gui from the associated view port
-    gui_remove_view_port(gui, view_port);
+    app->view_dispatcher = view_dispatcher_alloc();
 
-    // Freeing up memory removing the view_port and close
-    // the GUI record
-    view_port_free(view_port);
+    app->scene_manager = scene_manager_alloc(&clippy_scene_handlers, app);
+
+    view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
+    view_dispatcher_set_tick_event_callback(
+        app->view_dispatcher, clippy_app_tick_event_callback, 500);
+    view_dispatcher_set_custom_event_callback(
+        app->view_dispatcher, clippy_app_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(
+        app->view_dispatcher, clippy_app_back_event_callback);
+
+    app->clippy = clippy_alloc();
+    view_dispatcher_add_view(
+        app->view_dispatcher, ClippyAppViewStart, clippy_get_view(app->clippy));
+
+    view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
+
+    scene_manager_next_scene(app->scene_manager, ClippySceneStart);
+
+    return app;
+}
+
+void clippy_app_free(ClippyApp* app) {
+    furi_assert(app);
+
+    // Views
+    view_dispatcher_remove_view(app->view_dispatcher, ClippyAppViewStart);
+
+    clippy_free(app->clippy);
+
+    // View dispatcher
+    view_dispatcher_free(app->view_dispatcher);
+    scene_manager_free(app->scene_manager);
+
+    furi_string_free(app->file_path);
+
+    // Close records
     furi_record_close(RECORD_GUI);
+    furi_record_close(RECORD_STORAGE);
+    furi_record_close(RECORD_DIALOGS);
+
+    free(app);
+}
+
+int32_t clippy_app(void* p) {
+    ClippyApp* clippy_app = clippy_app_alloc((char*)p);
+    view_dispatcher_run(clippy_app->view_dispatcher);
+    clippy_app_free(clippy_app);
     return 0;
 }
