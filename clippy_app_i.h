@@ -32,7 +32,7 @@ struct ClippyApp {
     ViewDispatcher* view_dispatcher;
     SceneManager* scene_manager;
     DialogsApp* dialogs;
-    FS_Api* fs_api;
+    Storage* fs_api;
     Widget* widget;
     VariableItemList* variable_item_list;
     Loading* loading;
@@ -47,11 +47,6 @@ struct ClippyApp {
 
 typedef enum {
     ClippyAppViewStart,
-    ClippyAppViewCopyMode,
-    ClippyAppViewSelectClipboard,
-    ClippyAppViewPasteMode,
-    ClippyAppViewLoading,
-    ClippyAppViewWidget,
 } ClippyAppView;
 
 enum ClippyCustomEvent {

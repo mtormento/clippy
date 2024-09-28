@@ -19,4 +19,5 @@ bool clippy_scene_start_on_event(void* context, SceneManagerEvent event) {
 void clippy_scene_start_on_exit(void* context) {
     UNUSED(context);
     ClippyApp* app = context;
+    UNUSED(app);
 }

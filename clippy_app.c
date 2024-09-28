@@ -1,8 +1,71 @@
 #include "applications_user/clippy/clippy_app.h"
-#include "gui/modules/loading.h"
+#include "helpers/clippy_fatreader.h"
 #include <furi.h>
 #include <gui/gui.h>
 #include "clippy_app_i.h"
+
+void test_fatreader(ClippyApp* app) {
+    const char* image_filename = APP_ASSETS_PATH("fat.img");
+    const char* new_image = APP_ASSETS_PATH("fuckoff.img");
+    UNUSED(new_image);
+
+    FHandle* handle = malloc(sizeof(FHandle));
+    FRESULT res = fatreader_open_image(handle, image_filename, app->fs_api);
+    if(res != FR_OK) {
+        return;
+    }
+    fatreader_print_info(handle);
+
+    RootDirectory* root_directory = malloc(sizeof(RootDirectory));
+    res = fatreader_root_directory_open(root_directory, handle);
+    if(res != FR_OK) {
+        return;
+    }
+
+    // u8* file_buffer = malloc(1001);
+
+    // DIR dir;
+    // res = fatreader_root_directory_find_first(&dir, root_directory);
+    // if (res != FR_OK) {
+    //     printf("open root directory find first failed: %d\n", res);
+    //     return EXIT_FAILURE;
+    // }
+    //
+    // while ((res = fatreader_root_directory_find_next(&dir, root_directory)) == FR_OK) {
+    //     FIL file;
+    //     res = fatreader_file_open(&file, &dir);
+    //     if (res != FR_OK) {
+    //         printf("open file failed: %d\n", res);
+    //         return EXIT_FAILURE;
+    //     }
+    //     printf("\n");
+    //     while (res == FR_OK) {
+    //         memset(file_buffer, 0, 1001);
+    //         size_t bytes_read;
+    //         res = fatreader_file_read(file_buffer, &file, 1000, &bytes_read);
+    //         if (res == FR_READ_FAILED) {
+    //             printf("read file failed: %d\n", res);
+    //             return EXIT_FAILURE;
+    //         }
+    //         printf("%s", file_buffer);
+    //     }
+    //     printf("\n");
+    // }
+
+    res = fatreader_root_directory_close(root_directory);
+    if(res != FR_OK) {
+        return;
+    }
+
+    res = fatreader_close_image(handle);
+    if(res != FR_OK) {
+        return;
+    }
+
+    // free(file_buffer);
+    free(root_directory);
+    free(handle);
+}
 
 static bool clippy_app_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
@@ -56,6 +119,8 @@ ClippyApp* clippy_app_alloc(char* arg) {
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
 
     scene_manager_next_scene(app->scene_manager, ClippySceneStart);
+
+    test_fatreader(app);
 
     return app;
 }

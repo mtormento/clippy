@@ -1,5 +1,4 @@
 #include "clippy_view.h"
-#include "../clippy_app_i.h"
 #include <gui/elements.h>
 
 struct Clippy {
@@ -7,9 +6,11 @@ struct Clippy {
 };
 
 typedef struct {
+    uint32_t test;
 } ClippyModel;
 
-static void clippy_draw_callback(Canvas* canvas, void* _model) {
+static void clippy_draw_callback(Canvas* canvas, void* model) {
+    UNUSED(model);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str_aligned(canvas, canvas_width(canvas) / 2, 0, AlignCenter, AlignTop, "Clippy");
 }

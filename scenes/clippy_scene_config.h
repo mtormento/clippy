@@ -1,6 +1,1 @@
 ADD_SCENE(clippy, start, Start)
-ADD_SCENE(clippy, copy_mode, CopyMode)
-ADD_SCENE(clippy, select_clipboard, SelectClipboard)
-ADD_SCENE(clippy, paste_mode, PasteMode)
-ADD_SCENE(clippy, loading, Loading)
-ADD_SCENE(clippy, usb_locked, UsbLocked)
