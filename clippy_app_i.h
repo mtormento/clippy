@@ -47,6 +47,8 @@ struct ClippyApp {
 
 typedef enum {
     ClippyAppViewStart,
+    ClippyAppCopyPasteSelection,
+    ClippyAppPasteItemSelection,
 } ClippyAppView;
 
 enum ClippyCustomEvent {

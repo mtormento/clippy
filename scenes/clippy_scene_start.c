@@ -1,4 +1,5 @@
 #include "../clippy_app_i.h"
+#include "core/core_defines.h"
 
 void clippy_scene_start_on_enter(void* context) {
     ClippyApp* app = context;
@@ -10,8 +11,9 @@ bool clippy_scene_start_on_event(void* context, SceneManagerEvent event) {
     UNUSED(context);
     UNUSED(event);
     ClippyApp* app = context;
+    UNUSED(app);
 
-    view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewStart);
+    // view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewStart);
 
     return false;
 }

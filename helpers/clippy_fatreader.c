@@ -20,6 +20,7 @@ static void read_dir_into(DIR* target, u8* directory) {
     target->file_size = fatreader_get_dword(&directory[28]);
     target->attr = directory[11];
     memcpy(target->name, directory, 11);
+    target->name[11] = 0;
 }
 
 static u16 marker_by_fat_type(FatType type) {
