@@ -62,6 +62,7 @@ ClippyApp* clippy_app_alloc(char* arg) {
         app->view_dispatcher, ClippyAppCopyPasteSelection, widget_get_view(app->widget));
 
     // Paste item selection
+    items_array_init(app->items_array);
     app->variable_item_list = variable_item_list_alloc();
     view_dispatcher_add_view(
         app->view_dispatcher,
@@ -78,13 +79,20 @@ ClippyApp* clippy_app_alloc(char* arg) {
 void clippy_app_free(ClippyApp* app) {
     furi_assert(app);
 
+    // Paste item selection
+    items_array_clear(app->items_array);
+    variable_item_list_free(app->variable_item_list);
+
+    // Copy/Paste selection
+    widget_free(app->widget);
+
+    // Clippy view
+    clippy_free(app->clippy);
+
     // Views
     view_dispatcher_remove_view(app->view_dispatcher, ClippyAppViewStart);
     view_dispatcher_remove_view(app->view_dispatcher, ClippyAppCopyPasteSelection);
     view_dispatcher_remove_view(app->view_dispatcher, ClippyAppPasteItemSelection);
-
-    widget_free(app->widget);
-    clippy_free(app->clippy);
 
     // View dispatcher
     view_dispatcher_free(app->view_dispatcher);

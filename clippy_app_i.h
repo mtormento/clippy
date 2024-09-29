@@ -16,6 +16,8 @@
 #include <furi_hal_usb.h>
 #include "storage/storage.h"
 #include "views/clippy_view.h"
+#include "m-string.h"
+#include "m-array.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
 #define CLIPPY_APP_PATH_LAYOUT_FOLDER CLIPPY_APP_BASE_FOLDER "/assets/layouts"
@@ -27,6 +29,8 @@ typedef enum {
     ClippyAppErrorCloseRpc,
 } ClippyAppError;
 
+ARRAY_DEF(items_array, string_t);
+
 struct ClippyApp {
     Gui* gui;
     ViewDispatcher* view_dispatcher;
@@ -36,6 +40,7 @@ struct ClippyApp {
     Widget* widget;
     VariableItemList* variable_item_list;
     Loading* loading;
+    items_array_t items_array;
 
     Clippy* clippy;
 
