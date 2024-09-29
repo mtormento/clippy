@@ -220,6 +220,32 @@ FRESULT fatreader_root_directory_find_next(DIR* dir, RootDirectory* root_directo
     return fatreader_root_directory_find_first(dir, root_directory);
 }
 
+FRESULT fatreader_root_directory_find_by_name(
+    const char* name,
+    DIR* dir,
+    RootDirectory* root_directory) {
+    furi_assert(root_directory);
+    furi_assert(dir);
+
+    root_directory->current_ptr = root_directory->buffer;
+    FRESULT res = fatreader_root_directory_find_first(dir, root_directory);
+    if(res != FR_OK) {
+        return FR_FILE_NOT_FOUND;
+    }
+    if(strcmp(dir->name, name) == 0) {
+        return FR_OK;
+    } else {
+        do {
+            res = fatreader_root_directory_find_next(dir, root_directory);
+        } while(strcmp(dir->name, name) != 0 && res != FR_NO_FILE_FOUND);
+        if(res == FR_NO_FILE_FOUND) {
+            return FR_FILE_NOT_FOUND;
+        } else {
+            return FR_OK;
+        }
+    }
+}
+
 FRESULT fatreader_file_open(FIL* file, DIR* dir) {
     file->dir = dir;
     file->cur_cluster = dir->cluster;

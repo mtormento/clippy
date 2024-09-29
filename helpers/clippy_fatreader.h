@@ -29,7 +29,8 @@ typedef enum {
     FR_SEEK_FAILED,
     FR_NO_FILE_FOUND,
     FR_EMPTY_FILE,
-    FR_EOF
+    FR_EOF,
+    FR_FILE_NOT_FOUND,
 } FRESULT;
 
 typedef struct {
@@ -100,6 +101,10 @@ FRESULT fatreader_root_directory_open(RootDirectory* root_directory, FHandle* ha
 FRESULT fatreader_root_directory_close(RootDirectory* root_directory);
 FRESULT fatreader_root_directory_find_first(DIR* dir, RootDirectory* root_directory);
 FRESULT fatreader_root_directory_find_next(DIR* dir, RootDirectory* root_directory);
+FRESULT fatreader_root_directory_find_by_name(
+    const char* name,
+    DIR* dir,
+    RootDirectory* root_directory);
 
 // File operations
 FRESULT fatreader_file_open(FIL* file, DIR* dir);
