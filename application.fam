@@ -27,5 +27,6 @@ App(
     # Where the application will be stored into the Flip.x0
     fap_category="USB",
     fap_icon_assets="assets",
-    fap_file_assets="images",
+    fap_file_assets="resources",
+    fap_libs=["assets", "ble_profile"],
 )

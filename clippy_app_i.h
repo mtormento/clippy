@@ -19,6 +19,8 @@
 #include "m-string.h"
 #include "m-array.h"
 #include "helpers/mass_storage_usb.h"
+#include "helpers/bad_usb_hid.h"
+#include "views/clippy_bad_usb_view.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
 #define CLIPPY_APP_PATH_LAYOUT_FOLDER CLIPPY_APP_BASE_FOLDER "/assets/layouts"
@@ -53,6 +55,13 @@ struct ClippyApp {
     FuriMutex* usb_mutex;
     MassStorageUsb* usb;
 
+    ClippyBadUsb* bad_usb_view;
+    BadUsbHidInterface interface;
+    FuriHalUsbInterface* usb_if_prev;
+    FuriString* file_path;
+    FuriString* keyboard_layout;
+    BadUsbScript* bad_usb_script;
+
     uint32_t bytes_read, bytes_written;
 };
 
@@ -62,6 +71,9 @@ typedef enum {
     ClippyAppViewUsbLocked,
     ClippyAppViewMassStorageWork,
     ClippyAppViewLoading,
+    ClippyAppViewKeyboardWork,
+    ClippyAppViewConfig,
+    ClippyAppViewConfigLayout,
 } ClippyAppView;
 
 enum ClippyCustomEvent {
