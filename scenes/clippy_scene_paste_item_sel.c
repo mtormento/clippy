@@ -6,10 +6,9 @@
 #include "m-string.h"
 
 void prepare_varible_item_list(ClippyApp* app) {
-    const char* image_filename = APP_ASSETS_PATH("fat.img");
-
     FHandle* handle = malloc(sizeof(FHandle));
-    FRESULT res = fatreader_open_image(handle, image_filename, app->fs_api);
+    FRESULT res =
+        fatreader_open_image(handle, furi_string_get_cstr(app->fat_image_file_path), app->fs_api);
     if(res != FR_OK) {
         free(handle);
         return;
@@ -93,7 +92,7 @@ void clippy_scene_paste_item_sel_on_enter(void* context) {
 
     prepare_varible_item_list(app);
 
-    view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppPasteItemSelection);
+    view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewPasteItemSelection);
 }
 
 bool clippy_scene_paste_item_sel_on_event(void* context, SceneManagerEvent event) {

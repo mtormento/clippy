@@ -1,7 +1,7 @@
 #pragma once
 
 #include <storage/storage.h>
-#include "clippy_scsi.h"
+#include "mass_storage_scsi.h"
 
 typedef struct MassStorageUsb MassStorageUsb;
 

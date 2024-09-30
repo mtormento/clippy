@@ -15,9 +15,10 @@
 #include <gui/modules/widget.h>
 #include <furi_hal_usb.h>
 #include "storage/storage.h"
-#include "views/clippy_view.h"
+#include "views/clippy_mass_storage_view.h"
 #include "m-string.h"
 #include "m-array.h"
+#include "helpers/mass_storage_usb.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
 #define CLIPPY_APP_PATH_LAYOUT_FOLDER CLIPPY_APP_BASE_FOLDER "/assets/layouts"
@@ -38,22 +39,29 @@ struct ClippyApp {
     DialogsApp* dialogs;
     Storage* fs_api;
     Widget* widget;
-    VariableItemList* variable_item_list;
-    Loading* loading;
-    items_array_t items_array;
 
-    Clippy* clippy;
+    VariableItemList* variable_item_list;
+    items_array_t items_array;
+    Loading* loading;
 
     ClippyAppError error;
-    FuriString* file_path;
 
-    FuriHalUsbInterface* usb_if_prev;
+    // Mass Storage View
+    ClippyMassStorage* mass_storage_view;
+    FuriString* fat_image_file_path;
+    File* file;
+    FuriMutex* usb_mutex;
+    MassStorageUsb* usb;
+
+    uint32_t bytes_read, bytes_written;
 };
 
 typedef enum {
-    ClippyAppViewStart,
-    ClippyAppCopyPasteSelection,
-    ClippyAppPasteItemSelection,
+    ClippyAppViewCopyPasteSelection,
+    ClippyAppViewPasteItemSelection,
+    ClippyAppViewUsbLocked,
+    ClippyAppViewMassStorageWork,
+    ClippyAppViewLoading,
 } ClippyAppView;
 
 enum ClippyCustomEvent {
@@ -65,3 +73,5 @@ enum ClippyCustomEvent {
     MassStorageCustomEventNewImage,
     MassStorageCustomEventNameInput,
 };
+
+void clippy_app_show_loading_popup(ClippyApp* app, bool show);
