@@ -23,12 +23,10 @@
 #include "views/clippy_bad_usb_view.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
-#define CLIPPY_APP_PATH_LAYOUT_FOLDER CLIPPY_APP_BASE_FOLDER "/assets/layouts"
-#define CLIPPY_APP_SCRIPT_EXTENSION   ".txt"
+#define CLIPPY_APP_PATH_LAYOUT_FOLDER APP_ASSETS_PATH("/layouts")
 #define CLIPPY_APP_LAYOUT_EXTENSION   ".kl"
 
 typedef enum {
-    ClippyAppErrorNoFiles,
     ClippyAppErrorCloseRpc,
 } ClippyAppError;
 
@@ -60,7 +58,8 @@ struct ClippyApp {
     FuriHalUsbInterface* usb_if_prev;
     FuriString* file_path;
     FuriString* keyboard_layout;
-    BadUsbScript* bad_usb_script;
+    BadUsbPayload* bad_usb_payload;
+    FuriString* string_to_print;
 
     uint32_t bytes_read, bytes_written;
 };
@@ -71,19 +70,16 @@ typedef enum {
     ClippyAppViewUsbLocked,
     ClippyAppViewMassStorageWork,
     ClippyAppViewLoading,
-    ClippyAppViewKeyboardWork,
-    ClippyAppViewConfig,
-    ClippyAppViewConfigLayout,
+    ClippyAppViewBadUsbWork,
+    ClippyAppViewBadUsbConfig,
+    ClippyAppViewBadUsbConfigLayout,
 } ClippyAppView;
 
 enum ClippyCustomEvent {
     // Reserve first 100 events for button types and indexes, starting from 0
-    MassStorageCustomEventReserved = 100,
+    ClippyMassStorageCustomEventReserved = 100,
 
-    MassStorageCustomEventEject,
-    MassStorageCustomEventFileSelect,
-    MassStorageCustomEventNewImage,
-    MassStorageCustomEventNameInput,
+    ClippyMassStorageCustomEventEject,
 };
 
 void clippy_app_show_loading_popup(ClippyApp* app, bool show);

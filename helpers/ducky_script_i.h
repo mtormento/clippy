@@ -18,34 +18,20 @@ extern "C" {
 
 #define FILE_BUFFER_LEN 16
 
-struct BadUsbScript {
+struct BadUsbPayload {
     FuriHalUsbHidConfig hid_cfg;
     const BadUsbHidApi* hid;
     void* hid_inst;
     FuriThread* thread;
     ClippyBadUsbState st;
 
-    FuriString* file_path;
-    uint8_t file_buf[FILE_BUFFER_LEN + 1];
-    uint8_t buf_start;
-    uint8_t buf_len;
-    bool file_end;
-
-    uint32_t defdelay;
-    uint32_t stringdelay;
-    uint32_t defstringdelay;
-    uint16_t layout[128];
-
-    FuriString* line;
-    FuriString* line_prev;
-    uint32_t repeat_cnt;
-    uint8_t key_hold_nb;
-
     FuriString* string_print;
     size_t string_print_pos;
+
+    uint16_t layout[128];
 };
 
-uint16_t ducky_get_keycode(BadUsbScript* bad_usb, const char* param, bool accept_chars);
+uint16_t ducky_get_keycode(BadUsbPayload* bad_usb, const char* param, bool accept_chars);
 
 uint32_t ducky_get_command_len(const char* line);
 
@@ -57,19 +43,19 @@ uint16_t ducky_get_media_keycode_by_name(const char* param);
 
 bool ducky_get_number(const char* param, uint32_t* val);
 
-void ducky_numlock_on(BadUsbScript* bad_usb);
+void ducky_numlock_on(BadUsbPayload* bad_usb);
 
-bool ducky_numpad_press(BadUsbScript* bad_usb, const char num);
+bool ducky_numpad_press(BadUsbPayload* bad_usb, const char num);
 
-bool ducky_altchar(BadUsbScript* bad_usb, const char* charcode);
+bool ducky_altchar(BadUsbPayload* bad_usb, const char* charcode);
 
-bool ducky_altstring(BadUsbScript* bad_usb, const char* param);
+bool ducky_altstring(BadUsbPayload* bad_usb, const char* param);
 
-bool ducky_string(BadUsbScript* bad_usb, const char* param);
+bool ducky_string(BadUsbPayload* bad_usb, const char* param);
 
-int32_t ducky_execute_cmd(BadUsbScript* bad_usb, const char* line);
+int32_t ducky_execute_cmd(BadUsbPayload* bad_usb, const char* line);
 
-int32_t ducky_error(BadUsbScript* bad_usb, const char* text, ...);
+int32_t ducky_error(BadUsbPayload* bad_usb, const char* text, ...);
 
 #ifdef __cplusplus
 }

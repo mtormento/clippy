@@ -13,21 +13,16 @@ struct ClippyBadUsb {
 };
 
 typedef struct {
-    char file_name[MAX_NAME_LEN];
     char layout[MAX_NAME_LEN];
     ClippyBadUsbState state;
-    bool pause_wait;
     uint8_t anim_frame;
 } ClippyBadUsbModel;
 
 static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
     ClippyBadUsbModel* model = _model;
 
-    FuriString* disp_str;
-    disp_str = furi_string_alloc_set(model->file_name);
-    elements_string_fit_width(canvas, disp_str, 128 - 2);
+    FuriString* disp_str = furi_string_alloc();
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 2, 8, furi_string_get_cstr(disp_str));
 
     if(strlen(model->layout) == 0) {
         furi_string_set(disp_str, "(default)");
@@ -48,14 +43,8 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
        (state == ClippyBadUsbStateNotConnected)) {
         elements_button_center(canvas, "Run");
         elements_button_left(canvas, "Config");
-    } else if((state == ClippyBadUsbStateRunning) || (state == ClippyBadUsbStateDelay)) {
+    } else if(state == ClippyBadUsbStateRunning) {
         elements_button_center(canvas, "Stop");
-        if(!model->pause_wait) {
-            elements_button_right(canvas, "Pause");
-        }
-    } else if(state == ClippyBadUsbStatePaused) {
-        elements_button_center(canvas, "End");
-        elements_button_right(canvas, "Resume");
     } else if(state == ClippyBadUsbStateWaitForBtn) {
         elements_button_center(canvas, "Press to continue");
     } else if(state == ClippyBadUsbStateWillRun) {
@@ -72,26 +61,11 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 127, 31, AlignRight, AlignBottom, "Will run");
         canvas_draw_str_aligned(canvas, 127, 43, AlignRight, AlignBottom, "on connect");
-    } else if(state == ClippyBadUsbStateFileError) {
+    } else if(state == ClippyBadUsbStateInitError) {
         canvas_draw_icon(canvas, 4, 26, &I_Error_18x18);
         canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 127, 31, AlignRight, AlignBottom, "File");
+        canvas_draw_str_aligned(canvas, 127, 31, AlignRight, AlignBottom, "Init");
         canvas_draw_str_aligned(canvas, 127, 43, AlignRight, AlignBottom, "ERROR");
-    } else if(state == ClippyBadUsbStateScriptError) {
-        canvas_draw_icon(canvas, 4, 26, &I_Error_18x18);
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 127, 33, AlignRight, AlignBottom, "ERROR:");
-        canvas_set_font(canvas, FontSecondary);
-        furi_string_printf(disp_str, "line %zu", model->state.error_line);
-        canvas_draw_str_aligned(
-            canvas, 127, 46, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
-        furi_string_reset(disp_str);
-
-        furi_string_set_str(disp_str, model->state.error);
-        elements_string_fit_width(canvas, disp_str, canvas_width(canvas));
-        canvas_draw_str_aligned(
-            canvas, 127, 56, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
-        furi_string_reset(disp_str);
     } else if(state == ClippyBadUsbStateIdle) {
         canvas_draw_icon(canvas, 4, 26, &I_Smile_18x18);
         canvas_set_font(canvas, FontBigNumbers);
@@ -104,10 +78,6 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
             canvas_draw_icon(canvas, 4, 23, &I_EviSmile2_18x21);
         }
         canvas_set_font(canvas, FontBigNumbers);
-        furi_string_printf(
-            disp_str, "%zu", ((model->state.line_cur - 1) * 100) / model->state.line_nb);
-        canvas_draw_str_aligned(
-            canvas, 114, 40, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
     } else if(state == ClippyBadUsbStateDone) {
@@ -116,35 +86,13 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
         canvas_draw_str_aligned(canvas, 114, 40, AlignRight, AlignBottom, "100");
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
-    } else if(state == ClippyBadUsbStateDelay) {
+    } else if(state == ClippyBadUsbStateWaitForBtn) {
         if(model->anim_frame == 0) {
             canvas_draw_icon(canvas, 4, 23, &I_EviWaiting1_18x21);
         } else {
             canvas_draw_icon(canvas, 4, 23, &I_EviWaiting2_18x21);
         }
         canvas_set_font(canvas, FontBigNumbers);
-        furi_string_printf(
-            disp_str, "%zu", ((model->state.line_cur - 1) * 100) / model->state.line_nb);
-        canvas_draw_str_aligned(
-            canvas, 114, 40, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
-        furi_string_reset(disp_str);
-        canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
-        canvas_set_font(canvas, FontSecondary);
-        furi_string_printf(disp_str, "delay %lus", model->state.delay_remain);
-        canvas_draw_str_aligned(
-            canvas, 127, 50, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
-        furi_string_reset(disp_str);
-    } else if((state == ClippyBadUsbStatePaused) || (state == ClippyBadUsbStateWaitForBtn)) {
-        if(model->anim_frame == 0) {
-            canvas_draw_icon(canvas, 4, 23, &I_EviWaiting1_18x21);
-        } else {
-            canvas_draw_icon(canvas, 4, 23, &I_EviWaiting2_18x21);
-        }
-        canvas_set_font(canvas, FontBigNumbers);
-        furi_string_printf(
-            disp_str, "%zu", ((model->state.line_cur - 1) * 100) / model->state.line_nb);
-        canvas_draw_str_aligned(
-            canvas, 114, 40, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
         canvas_set_font(canvas, FontSecondary);
@@ -168,22 +116,6 @@ static bool clippy_bad_usb_input_callback(InputEvent* event, void* context) {
             furi_assert(bad_usb->callback);
             bad_usb->callback(event->key, bad_usb->context);
         } else if(event->key == InputKeyOk) {
-            with_view_model(
-                bad_usb->view, ClippyBadUsbModel * model, { model->pause_wait = false; }, true);
-            consumed = true;
-            furi_assert(bad_usb->callback);
-            bad_usb->callback(event->key, bad_usb->context);
-        } else if(event->key == InputKeyRight) {
-            with_view_model(
-                bad_usb->view,
-                ClippyBadUsbModel * model,
-                {
-                    if((model->state.state == ClippyBadUsbStateRunning) ||
-                       (model->state.state == ClippyBadUsbStateDelay)) {
-                        model->pause_wait = true;
-                    }
-                },
-                true);
             consumed = true;
             furi_assert(bad_usb->callback);
             bad_usb->callback(event->key, bad_usb->context);
@@ -233,15 +165,6 @@ void clippy_bad_usb_view_set_button_callback(
         true);
 }
 
-void clippy_bad_usb_view_set_file_name(ClippyBadUsb* bad_usb, const char* name) {
-    furi_assert(name);
-    with_view_model(
-        bad_usb->view,
-        ClippyBadUsbModel * model,
-        { strlcpy(model->file_name, name, MAX_NAME_LEN); },
-        true);
-}
-
 void clippy_bad_usb_view_set_layout(ClippyBadUsb* bad_usb, const char* layout) {
     furi_assert(layout);
     with_view_model(
@@ -259,9 +182,6 @@ void clippy_bad_usb_view_set_state(ClippyBadUsb* bad_usb, ClippyBadUsbState* st)
         {
             memcpy(&(model->state), st, sizeof(ClippyBadUsbState));
             model->anim_frame ^= 1;
-            if(model->state.state == ClippyBadUsbStatePaused) {
-                model->pause_wait = false;
-            }
         },
         true);
 }

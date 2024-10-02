@@ -50,14 +50,14 @@ static uint32_t file_num_blocks(void* ctx) {
 static void file_eject(void* ctx) {
     ClippyApp* app = ctx;
     FURI_LOG_D(TAG, "EJECT");
-    view_dispatcher_send_custom_event(app->view_dispatcher, MassStorageCustomEventEject);
+    view_dispatcher_send_custom_event(app->view_dispatcher, ClippyMassStorageCustomEventEject);
 }
 
 bool clippy_scene_mass_storage_work_on_event(void* context, SceneManagerEvent event) {
     ClippyApp* app = context;
     bool consumed = false;
     if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == MassStorageCustomEventEject) {
+        if(event.event == ClippyMassStorageCustomEventEject) {
             consumed = scene_manager_search_and_switch_to_previous_scene(
                 app->scene_manager, ClippySceneCopyPasteSel);
         }

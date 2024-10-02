@@ -17,8 +17,6 @@ void clippy_bad_usb_view_set_button_callback(
     ClippyBadUsbButtonCallback callback,
     void* context);
 
-void clippy_bad_usb_view_set_file_name(ClippyBadUsb* bad_usb, const char* name);
-
 void clippy_bad_usb_view_set_layout(ClippyBadUsb* bad_usb, const char* layout);
 
 void clippy_bad_usb_view_set_state(ClippyBadUsb* bad_usb, ClippyBadUsbState* st);

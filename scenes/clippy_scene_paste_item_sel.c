@@ -1,11 +1,27 @@
 #include "../clippy_app_i.h"
 #include "core/core_defines.h"
+#include "core/string.h"
 #include "gui/modules/variable_item_list.h"
 #include "gui/scene_manager.h"
 #include "helpers/clippy_fatreader.h"
 #include "m-string.h"
 
-void prepare_varible_item_list(ClippyApp* app) {
+static void item_select(void* context, uint32_t index) {
+    ClippyApp* app = context;
+
+    if(app->bad_usb_payload) {
+        clippy_bad_usb_payload_teardown(app->bad_usb_payload);
+        app->bad_usb_payload = NULL;
+    }
+
+    const string_t* string_to_print = items_array_get(app->items_array, index);
+    const char* string_to_print_str = string_get_cstr(*string_to_print);
+    furi_string_set_str(app->string_to_print, string_to_print_str);
+
+    scene_manager_next_scene(app->scene_manager, ClippySceneBadUsbWork);
+}
+
+static void prepare_varible_item_list(ClippyApp* app) {
     FHandle* handle = malloc(sizeof(FHandle));
     FRESULT res =
         fatreader_open_image(handle, furi_string_get_cstr(app->fat_image_file_path), app->fs_api);
@@ -91,6 +107,8 @@ void clippy_scene_paste_item_sel_on_enter(void* context) {
     ClippyApp* app = context;
 
     prepare_varible_item_list(app);
+
+    variable_item_list_set_enter_callback(app->variable_item_list, item_select, app);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewPasteItemSelection);
 }

@@ -17,22 +17,20 @@ bool clippy_scene_bad_usb_work_on_event(void* context, SceneManagerEvent event) 
     if(event.type == SceneManagerEventTypeCustom) {
         if(event.event == InputKeyLeft) {
             if(clippy_bad_usb_view_is_idle_state(app->bad_usb_view)) {
-                clippy_bad_usb_script_close(app->bad_usb_script);
-                app->bad_usb_script = NULL;
+                clippy_bad_usb_payload_teardown(app->bad_usb_payload);
+                app->bad_usb_payload = NULL;
 
                 scene_manager_next_scene(app->scene_manager, ClippySceneConfig);
             }
             consumed = true;
         } else if(event.event == InputKeyOk) {
-            clippy_bad_usb_script_start_stop(app->bad_usb_script);
+            clippy_bad_usb_payload_start_stop(app->bad_usb_payload);
             consumed = true;
         } else if(event.event == InputKeyRight) {
-            clippy_bad_usb_script_pause_resume(app->bad_usb_script);
-            consumed = true;
         }
     } else if(event.type == SceneManagerEventTypeTick) {
         clippy_bad_usb_view_set_state(
-            app->bad_usb_view, clippy_bad_usb_script_get_state(app->bad_usb_script));
+            app->bad_usb_view, clippy_bad_usb_payload_get_state(app->bad_usb_payload));
     }
     return consumed;
 }
@@ -40,14 +38,8 @@ bool clippy_scene_bad_usb_work_on_event(void* context, SceneManagerEvent event) 
 void clippy_scene_bad_usb_work_on_enter(void* context) {
     ClippyApp* app = context;
 
-    app->bad_usb_script = clippy_bad_usb_script_open(app->file_path, app->interface);
-    clippy_bad_usb_script_set_keyboard_layout(app->bad_usb_script, app->keyboard_layout);
-
-    FuriString* file_name;
-    file_name = furi_string_alloc();
-    path_extract_filename(app->file_path, file_name, true);
-    clippy_bad_usb_view_set_file_name(app->bad_usb_view, furi_string_get_cstr(file_name));
-    furi_string_free(file_name);
+    app->bad_usb_payload = clippy_bad_usb_payload_setup(app->string_to_print, app->interface);
+    clippy_bad_usb_payload_set_keyboard_layout(app->bad_usb_payload, app->keyboard_layout);
 
     FuriString* layout;
     layout = furi_string_alloc();
@@ -56,11 +48,11 @@ void clippy_scene_bad_usb_work_on_enter(void* context) {
     furi_string_free(layout);
 
     clippy_bad_usb_view_set_state(
-        app->bad_usb_view, clippy_bad_usb_script_get_state(app->bad_usb_script));
+        app->bad_usb_view, clippy_bad_usb_payload_get_state(app->bad_usb_payload));
 
     clippy_bad_usb_view_set_button_callback(
         app->bad_usb_view, clippy_scene_bad_usb_work_button_callback, app);
-    view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewKeyboardWork);
+    view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewBadUsbWork);
 }
 
 void clippy_scene_bad_usb_work_on_exit(void* context) {

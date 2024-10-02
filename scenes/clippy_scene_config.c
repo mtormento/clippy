@@ -57,7 +57,7 @@ void clippy_scene_config_on_enter(void* context) {
     draw_menu(clippy);
     variable_item_list_set_selected_item(var_item_list, 0);
 
-    view_dispatcher_switch_to_view(clippy->view_dispatcher, ClippyAppViewConfig);
+    view_dispatcher_switch_to_view(clippy->view_dispatcher, ClippyAppViewBadUsbConfig);
 }
 
 bool clippy_scene_config_on_event(void* context, SceneManagerEvent event) {
