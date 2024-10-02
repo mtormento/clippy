@@ -248,6 +248,7 @@ FRESULT fatreader_root_directory_find_by_name(
 
 FRESULT fatreader_file_open(FIL* file, DIR* dir) {
     file->dir = dir;
+    file->read_bytes = 0;
     file->cur_cluster = dir->cluster;
     file->cur_sector =
         dir->handle->data_start_sector +
