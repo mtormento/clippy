@@ -106,6 +106,8 @@ free_stuff:
 void clippy_scene_paste_item_sel_on_enter(void* context) {
     ClippyApp* app = context;
 
+    variable_item_list_reset(app->variable_item_list);
+    variable_item_list_set_selected_item(app->variable_item_list, 0);
     prepare_varible_item_list(app);
 
     variable_item_list_set_enter_callback(app->variable_item_list, item_select, app);

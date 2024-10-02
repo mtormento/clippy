@@ -114,7 +114,6 @@ static int32_t clippy_bad_usb_worker(void* context) {
     BadUsbPayload* bad_usb = context;
 
     ClippyBadUsbWorkerState worker_state = ClippyBadUsbStateInit;
-    int32_t delay_val = 0;
 
     FURI_LOG_I(WORKER_TAG, "Init");
 
@@ -153,7 +152,6 @@ static int32_t clippy_bad_usb_worker(void* context) {
                 break;
             } else if(flags & WorkerEvtStartStop) { // Send payload
                 dolphin_deed(DolphinDeedBadUsbPlayScript);
-                delay_val = 0;
                 worker_state = ClippyBadUsbStateRunning;
             } else if(flags & WorkerEvtDisconnect) {
                 worker_state = ClippyBadUsbStateNotConnected; // USB disconnected
@@ -168,7 +166,6 @@ static int32_t clippy_bad_usb_worker(void* context) {
                 break;
             } else if(flags & WorkerEvtConnect) { // Start executing script
                 dolphin_deed(DolphinDeedBadUsbPlayScript);
-                delay_val = 0;
                 // extra time for PC to recognize Flipper as keyboard
                 flags = furi_thread_flags_wait(
                     WorkerEvtEnd | WorkerEvtDisconnect | WorkerEvtStartStop,
@@ -187,11 +184,8 @@ static int32_t clippy_bad_usb_worker(void* context) {
             bad_usb->st.state = worker_state;
 
         } else if(worker_state == ClippyBadUsbStateRunning) { // State: running
-            uint16_t delay_cur = (delay_val > 1000) ? (1000) : (delay_val);
             uint32_t flags = furi_thread_flags_wait(
-                WorkerEvtEnd | WorkerEvtStartStop | WorkerEvtDisconnect,
-                FuriFlagWaitAny,
-                delay_cur);
+                WorkerEvtEnd | WorkerEvtStartStop | WorkerEvtDisconnect, FuriFlagWaitAny, 0);
 
             if(!(flags & FuriFlagError)) {
                 if(flags & WorkerEvtEnd) {
@@ -208,8 +202,8 @@ static int32_t clippy_bad_usb_worker(void* context) {
             } else if(
                 (flags == (unsigned)FuriFlagErrorTimeout) ||
                 (flags == (unsigned)FuriFlagErrorResource)) {
-                delay_val = ducky_string(bad_usb, furi_string_get_cstr(bad_usb->string_print));
-                delay_val = 0;
+                // TODO: check error
+                ducky_string(bad_usb, furi_string_get_cstr(bad_usb->string_print));
                 worker_state = ClippyBadUsbStateIdle;
                 bad_usb->st.state = ClippyBadUsbStateDone;
                 bad_usb->hid->release_all(bad_usb->hid_inst);
@@ -224,7 +218,6 @@ static int32_t clippy_bad_usb_worker(void* context) {
                 if(flags & WorkerEvtEnd) {
                     break;
                 } else if(flags & WorkerEvtStartStop) {
-                    delay_val = 0;
                     worker_state = ClippyBadUsbStateRunning;
                 } else if(flags & WorkerEvtDisconnect) {
                     worker_state = ClippyBadUsbStateNotConnected; // USB disconnected

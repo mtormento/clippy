@@ -17,9 +17,6 @@ bool clippy_scene_bad_usb_work_on_event(void* context, SceneManagerEvent event) 
     if(event.type == SceneManagerEventTypeCustom) {
         if(event.event == InputKeyLeft) {
             if(clippy_bad_usb_view_is_idle_state(app->bad_usb_view)) {
-                clippy_bad_usb_payload_teardown(app->bad_usb_payload);
-                app->bad_usb_payload = NULL;
-
                 scene_manager_next_scene(app->scene_manager, ClippySceneConfig);
             }
             consumed = true;
@@ -56,5 +53,8 @@ void clippy_scene_bad_usb_work_on_enter(void* context) {
 }
 
 void clippy_scene_bad_usb_work_on_exit(void* context) {
-    UNUSED(context);
+    ClippyApp* app = context;
+
+    clippy_bad_usb_payload_teardown(app->bad_usb_payload);
+    app->bad_usb_payload = NULL;
 }
