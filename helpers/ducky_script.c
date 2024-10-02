@@ -1,3 +1,4 @@
+#include "core/kernel.h"
 #include <furi.h>
 #include <furi_hal.h>
 #include <gui/gui.h>
@@ -58,6 +59,7 @@ bool ducky_string(BadUsbPayload* bad_usb, const char* param) {
     uint32_t i = 0;
 
     while(param[i] != '\0') {
+        furi_delay_ms(10);
         if(param[i] != '\n') {
             uint16_t keycode = BADUSB_ASCII_TO_KEY(bad_usb, param[i]);
             if(keycode != HID_KEYBOARD_NONE) {
