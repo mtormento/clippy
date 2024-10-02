@@ -57,8 +57,6 @@ FRESULT fatreader_open_image(FHandle* handle, const char* image_filename, Storag
         free(sector_buffer);
         return FR_READ_FAILED;
     }
-    storage_file_close(fp);
-    storage_file_free(fp);
 
     u16 fat_signature = fatreader_get_word(&sector_buffer[510]);
 
