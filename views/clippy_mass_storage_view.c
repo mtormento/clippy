@@ -35,9 +35,7 @@ static void clippy_mass_storage_draw_callback(Canvas* canvas, void* _model) {
         canvas, canvas_width(canvas) / 2, 0, AlignCenter, AlignTop, "USB Mass Storage");
 
     canvas_set_font(canvas, FontSecondary);
-    elements_string_fit_width(canvas, model->file_name, 89 - 2);
-    canvas_draw_str_aligned(
-        canvas, 50, 23, AlignCenter, AlignBottom, furi_string_get_cstr(model->file_name));
+    canvas_draw_str_aligned(canvas, 50, 23, AlignCenter, AlignBottom, "Edit CLIPPY.TXT");
 
     furi_string_set_str(model->status_string, "R:");
     append_suffixed_byte_count(model->status_string, model->bytes_read);
