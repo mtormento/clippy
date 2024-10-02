@@ -1,10 +1,11 @@
 #include "../clippy_app_i.h"
-#include "core/core_defines.h"
 #include "core/string.h"
 #include "gui/modules/variable_item_list.h"
 #include "gui/scene_manager.h"
 #include "helpers/clippy_fatreader.h"
 #include "m-string.h"
+
+#define MAX_CLIPPY_TXT_FILE_SIZE (10 * 1024)
 
 static void item_select(void* context, uint32_t index) {
     ClippyApp* app = context;
@@ -21,41 +22,52 @@ static void item_select(void* context, uint32_t index) {
     scene_manager_next_scene(app->scene_manager, ClippySceneBadUsbWork);
 }
 
-static void prepare_varible_item_list(ClippyApp* app) {
-    FHandle* handle = malloc(sizeof(FHandle));
+static bool prepare_variable_item_list(ClippyApp* app) {
+    FHandle* handle = NULL;
+    RootDirectory* root_directory = NULL;
+
+    handle = malloc(sizeof(FHandle));
     FRESULT res =
         fatreader_open_image(handle, furi_string_get_cstr(app->fat_image_file_path), app->fs_api);
     if(res != FR_OK) {
-        free(handle);
-        return;
+        variable_item_list_add(app->variable_item_list, "Failed to open fat image", 0, NULL, app);
+        goto error;
     }
 
-    RootDirectory* root_directory = malloc(sizeof(RootDirectory));
+    root_directory = malloc(sizeof(RootDirectory));
     res = fatreader_root_directory_open(root_directory, handle);
     if(res != FR_OK) {
-        goto free_stuff;
+        variable_item_list_add(
+            app->variable_item_list, "Failed to open root directory", 0, NULL, app);
+        goto error;
     }
 
     const char* file_to_look_for = "CLIPPY  TXT";
-
     DIR dir;
     res = fatreader_root_directory_find_by_name(file_to_look_for, &dir, root_directory);
     if(res != FR_OK) {
-        goto close_stuff;
+        variable_item_list_add(app->variable_item_list, "CLIPPY.TXT not found", 0, NULL, app);
+        goto error;
     }
-    if(dir.file_size > 1024) {
-        // TODO: we need to bail out here
+
+    if(dir.file_size > MAX_CLIPPY_TXT_FILE_SIZE) {
+        variable_item_list_add(
+            app->variable_item_list, "CLIPPY.TXT filesize > 10kb", 0, NULL, app);
+        goto error;
     }
+
     // Clipboard file found: let's read it now
     FIL file;
     res = fatreader_file_open(&file, &dir);
     if(res != FR_OK) {
-        goto close_stuff;
+        variable_item_list_add(
+            app->variable_item_list, "CLIPPY.TXT file open failed", 0, NULL, app);
+        goto error;
     }
-    u8* buffer = malloc(1025);
-    memset(buffer, 0, 1025);
+    u8* buffer = malloc(MAX_CLIPPY_TXT_FILE_SIZE + 1);
+    memset(buffer, 0, MAX_CLIPPY_TXT_FILE_SIZE + 1);
     size_t bytes_read;
-    res = fatreader_file_read(buffer, &file, 1024, &bytes_read);
+    res = fatreader_file_read(buffer, &file, MAX_CLIPPY_TXT_FILE_SIZE, &bytes_read);
     string_t str;
     string_init(str);
 
@@ -87,20 +99,33 @@ static void prepare_varible_item_list(ClippyApp* app) {
             app);
     }
 
-close_stuff:
     res = fatreader_root_directory_close(root_directory);
     if(res != FR_OK) {
-        goto free_stuff;
+        variable_item_list_add(
+            app->variable_item_list, "Failed to close root directory", 0, NULL, app);
+        goto error;
     }
-
     res = fatreader_close_image(handle);
     if(res != FR_OK) {
-        goto free_stuff;
+        variable_item_list_add(app->variable_item_list, "Failed to close fat image", 0, NULL, app);
+        goto error;
     }
-free_stuff:
-
     free(root_directory);
     free(handle);
+
+    return true;
+
+error:
+    if(root_directory) {
+        fatreader_root_directory_close(root_directory);
+        free(root_directory);
+    }
+    if(handle) {
+        fatreader_close_image(handle);
+        free(handle);
+    }
+
+    return false;
 }
 
 void clippy_scene_paste_item_sel_on_enter(void* context) {
@@ -108,9 +133,9 @@ void clippy_scene_paste_item_sel_on_enter(void* context) {
 
     variable_item_list_reset(app->variable_item_list);
     variable_item_list_set_selected_item(app->variable_item_list, 0);
-    prepare_varible_item_list(app);
-
-    variable_item_list_set_enter_callback(app->variable_item_list, item_select, app);
+    if(prepare_variable_item_list(app)) {
+        variable_item_list_set_enter_callback(app->variable_item_list, item_select, app);
+    }
 
     view_dispatcher_switch_to_view(app->view_dispatcher, ClippyAppViewPasteItemSelection);
 }
@@ -128,7 +153,6 @@ bool clippy_scene_paste_item_sel_on_event(void* context, SceneManagerEvent event
 }
 
 void clippy_scene_paste_item_sel_on_exit(void* context) {
-    UNUSED(context);
     ClippyApp* app = context;
 
     variable_item_list_reset(app->variable_item_list);
