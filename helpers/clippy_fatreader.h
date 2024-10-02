@@ -31,6 +31,7 @@ typedef enum {
     FR_EMPTY_FILE,
     FR_EOF,
     FR_FILE_NOT_FOUND,
+    FR_NOT_FAT,
 } FRESULT;
 
 typedef struct {

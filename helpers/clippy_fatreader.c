@@ -57,12 +57,21 @@ FRESULT fatreader_open_image(FHandle* handle, const char* image_filename, Storag
         free(sector_buffer);
         return FR_READ_FAILED;
     }
+    storage_file_close(fp);
+    storage_file_free(fp);
+
+    u16 fat_signature = fatreader_get_word(&sector_buffer[510]);
+
+    if(fat_signature != 0xAA55) {
+        free(sector_buffer);
+        return FR_NOT_FAT;
+    }
 
     BootSector bs = {
         .extended_boot_signature = sector_buffer[38],
         .drive_number = sector_buffer[36],
         .volume_id = fatreader_get_dword(&sector_buffer[39]),
-        .sign = fatreader_get_word(&sector_buffer[510])};
+        .sign = fat_signature};
 
     BiosParameterBlock bpb = {
         .bytes_per_sec = fatreader_get_word(&sector_buffer[11]),
