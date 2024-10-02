@@ -30,7 +30,6 @@ void clippy_scene_copy_paste_sel_on_enter(void* context) {
 }
 
 bool clippy_scene_copy_paste_sel_on_event(void* context, SceneManagerEvent event) {
-    UNUSED(context);
     UNUSED(event);
     ClippyApp* app = context;
     UNUSED(app);
@@ -39,7 +38,6 @@ bool clippy_scene_copy_paste_sel_on_event(void* context, SceneManagerEvent event
 }
 
 void clippy_scene_copy_paste_sel_on_exit(void* context) {
-    UNUSED(context);
     ClippyApp* app = context;
 
     widget_reset(app->widget);
