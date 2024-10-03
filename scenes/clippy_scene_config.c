@@ -11,6 +11,13 @@ const char* const interface_mode_text[2] = {
     "BLE",
 };
 
+const char* const delay_text[4] = {
+    "25ms",
+    "50ms",
+    "100ms",
+    "200ms",
+};
+
 void clippy_scene_config_select_callback(void* context, uint32_t index) {
     ClippyApp* clippy = context;
     if(index != ConfigIndexInterface) {
@@ -29,6 +36,17 @@ void clippy_scene_config_interface_callback(VariableItem* item) {
     view_dispatcher_send_custom_event(clippy->view_dispatcher, ConfigIndexInterface);
 }
 
+void clippy_scene_config_delay_callback(VariableItem* item) {
+    ClippyApp* clippy = variable_item_get_context(item);
+    furi_assert(clippy);
+    uint8_t index = variable_item_get_current_value_index(item);
+
+    variable_item_set_current_value_text(item, delay_text[index]);
+    clippy->delay = index;
+
+    view_dispatcher_send_custom_event(clippy->view_dispatcher, ConfigIndexInterface);
+}
+
 static void draw_menu(ClippyApp* clippy) {
     VariableItemList* var_item_list = clippy->variable_item_list;
 
@@ -37,6 +55,11 @@ static void draw_menu(ClippyApp* clippy) {
     variable_item_list_add(var_item_list, "Keyboard Layout (global)", 0, NULL, NULL);
 
     VariableItem* item = variable_item_list_add(
+        var_item_list, "Delay", 4, clippy_scene_config_delay_callback, clippy);
+    variable_item_set_current_value_index(item, clippy->delay);
+    variable_item_set_current_value_text(item, delay_text[clippy->delay]);
+
+    item = variable_item_list_add(
         var_item_list, "Interface", 2, clippy_scene_config_interface_callback, clippy);
     if(clippy->interface == BadUsbHidInterfaceUsb) {
         variable_item_set_current_value_index(item, 0);

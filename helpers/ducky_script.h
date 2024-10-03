@@ -21,12 +21,15 @@ typedef enum {
 
 typedef struct {
     ClippyBadUsbWorkerState state;
+    size_t string_length;
+    size_t string_idx;
     char error[64];
 } ClippyBadUsbState;
 
 typedef struct BadUsbPayload BadUsbPayload;
 
-BadUsbPayload* clippy_bad_usb_payload_setup(FuriString* payload, BadUsbHidInterface interface);
+BadUsbPayload*
+    clippy_bad_usb_payload_setup(FuriString* payload, BadUsbHidInterface interface, uint32_t delay);
 
 void clippy_bad_usb_payload_teardown(BadUsbPayload* bad_usb);
 

@@ -15,6 +15,8 @@ struct ClippyBadUsb {
 typedef struct {
     char layout[MAX_NAME_LEN];
     ClippyBadUsbState state;
+    uint16_t string_idx;
+    uint16_t string_length;
     uint8_t anim_frame;
 } ClippyBadUsbModel;
 
@@ -78,6 +80,10 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
             canvas_draw_icon(canvas, 4, 23, &I_EviSmile2_18x21);
         }
         canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(
+            disp_str, "%zu", ((model->state.string_idx) * 100) / (model->state.string_length));
+        canvas_draw_str_aligned(
+            canvas, 114, 40, AlignRight, AlignBottom, furi_string_get_cstr(disp_str));
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
     } else if(state == ClippyBadUsbStateDone) {

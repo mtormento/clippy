@@ -1,5 +1,4 @@
 #include "applications_user/clippy/clippy_app.h"
-#include "bad_usb/views/bad_usb_view.h"
 #include "core/string.h"
 #include "flipper_format.h"
 #include "gui/modules/loading.h"
@@ -14,7 +13,7 @@
 #include <gui/gui.h>
 #include "clippy_app_i.h"
 
-#define CLIPPY_SETTINGS_PATH           CLIPPY_APP_BASE_FOLDER "/.clippy.settings"
+#define CLIPPY_SETTINGS_PATH           APP_DATA_PATH("/.clippy.settings")
 #define CLIPPY_SETTINGS_FILE_TYPE      "Flipper Clippy Settings File"
 #define CLIPPY_SETTINGS_VERSION        1
 #define CLIPPY_SETTINGS_DEFAULT_LAYOUT CLIPPY_APP_PATH_LAYOUT_FOLDER "/en-US.kl"
@@ -56,6 +55,7 @@ static void clippy_load_settings(ClippyApp* app) {
     FuriString* temp_str = furi_string_alloc();
     uint32_t version = 0;
     uint32_t interface = 0;
+    uint32_t delay = 0;
 
     if(flipper_format_file_open_existing(fff, CLIPPY_SETTINGS_PATH)) {
         do {
@@ -66,6 +66,7 @@ static void clippy_load_settings(ClippyApp* app) {
 
             if(!flipper_format_read_string(fff, "layout", temp_str)) break;
             if(!flipper_format_read_uint32(fff, "interface", &interface, 1)) break;
+            if(!flipper_format_read_uint32(fff, "delay", &delay, 1)) break;
             if(interface > BadUsbHidInterfaceBle) break;
 
             state = true;
@@ -77,6 +78,7 @@ static void clippy_load_settings(ClippyApp* app) {
     if(state) {
         furi_string_set(app->keyboard_layout, temp_str);
         app->interface = interface;
+        app->delay = delay;
 
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         FileInfo layout_file_info;
@@ -107,6 +109,7 @@ static void clippy_save_settings(ClippyApp* app) {
             uint32_t interface_id = app->interface;
             if(!flipper_format_write_uint32(fff, "interface", (const uint32_t*)&interface_id, 1))
                 break;
+            if(!flipper_format_write_uint32(fff, "delay", (const uint32_t*)&app->delay, 1)) break;
         } while(0);
     }
 
@@ -120,6 +123,7 @@ ClippyApp* clippy_app_alloc() {
     app->fat_image_file_path = furi_string_alloc_set_str(APP_ASSETS_PATH("fat.img"));
     app->string_to_print = furi_string_alloc();
     app->keyboard_layout = furi_string_alloc();
+    app->delay = 0;
 
     clippy_load_settings(app);
 

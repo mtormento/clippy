@@ -35,7 +35,8 @@ bool clippy_scene_bad_usb_work_on_event(void* context, SceneManagerEvent event) 
 void clippy_scene_bad_usb_work_on_enter(void* context) {
     ClippyApp* app = context;
 
-    app->bad_usb_payload = clippy_bad_usb_payload_setup(app->string_to_print, app->interface);
+    app->bad_usb_payload =
+        clippy_bad_usb_payload_setup(app->string_to_print, app->interface, app->delay);
     clippy_bad_usb_payload_set_keyboard_layout(app->bad_usb_payload, app->keyboard_layout);
 
     FuriString* layout;

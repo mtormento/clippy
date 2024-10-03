@@ -60,6 +60,7 @@ struct ClippyApp {
     FuriString* keyboard_layout;
     BadUsbPayload* bad_usb_payload;
     FuriString* string_to_print;
+    uint32_t delay;
 
     uint32_t bytes_read, bytes_written;
 };

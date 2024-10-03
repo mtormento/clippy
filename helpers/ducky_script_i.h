@@ -27,6 +27,7 @@ struct BadUsbPayload {
 
     FuriString* string_print;
     size_t string_print_pos;
+    uint32_t delay_between_keystrokes;
 
     uint16_t layout[128];
 };

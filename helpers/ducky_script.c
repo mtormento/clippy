@@ -55,24 +55,27 @@ int32_t ducky_error(BadUsbPayload* bad_usb, const char* text, ...) {
     return SCRIPT_STATE_ERROR;
 }
 
-bool ducky_string(BadUsbPayload* bad_usb, const char* param) {
-    uint32_t i = 0;
-
-    while(param[i] != '\0') {
-        furi_delay_ms(10);
-        if(param[i] != '\n') {
-            uint16_t keycode = BADUSB_ASCII_TO_KEY(bad_usb, param[i]);
-            if(keycode != HID_KEYBOARD_NONE) {
-                bad_usb->hid->kb_press(bad_usb->hid_inst, keycode);
-                bad_usb->hid->kb_release(bad_usb->hid_inst, keycode);
-            }
-        } else {
-            bad_usb->hid->kb_press(bad_usb->hid_inst, HID_KEYBOARD_RETURN);
-            bad_usb->hid->kb_release(bad_usb->hid_inst, HID_KEYBOARD_RETURN);
-        }
-        i++;
+static bool ducky_string_next(BadUsbPayload* bad_usb) {
+    if(bad_usb->string_print_pos >= furi_string_size(bad_usb->string_print)) {
+        return true;
     }
-    return true;
+
+    char print_char = furi_string_get_char(bad_usb->string_print, bad_usb->string_print_pos);
+
+    if(print_char != '\n') {
+        uint16_t keycode = BADUSB_ASCII_TO_KEY(bad_usb, print_char);
+        if(keycode != HID_KEYBOARD_NONE) {
+            bad_usb->hid->kb_press(bad_usb->hid_inst, keycode);
+            bad_usb->hid->kb_release(bad_usb->hid_inst, keycode);
+        }
+    } else {
+        bad_usb->hid->kb_press(bad_usb->hid_inst, HID_KEYBOARD_RETURN);
+        bad_usb->hid->kb_release(bad_usb->hid_inst, HID_KEYBOARD_RETURN);
+    }
+
+    bad_usb->string_print_pos++;
+
+    return false;
 }
 
 static void bad_usb_hid_state_callback(bool state, void* context) {
@@ -155,6 +158,7 @@ static int32_t clippy_bad_usb_worker(void* context) {
             } else if(flags & WorkerEvtStartStop) { // Send payload
                 dolphin_deed(DolphinDeedBadUsbPlayScript);
                 worker_state = ClippyBadUsbStateRunning;
+                bad_usb->st.string_idx = bad_usb->string_print_pos = 0;
             } else if(flags & WorkerEvtDisconnect) {
                 worker_state = ClippyBadUsbStateNotConnected; // USB disconnected
             }
@@ -186,8 +190,9 @@ static int32_t clippy_bad_usb_worker(void* context) {
             bad_usb->st.state = worker_state;
 
         } else if(worker_state == ClippyBadUsbStateRunning) { // State: running
+            uint32_t delay = bad_usb->delay_between_keystrokes;
             uint32_t flags = furi_thread_flags_wait(
-                WorkerEvtEnd | WorkerEvtStartStop | WorkerEvtDisconnect, FuriFlagWaitAny, 0);
+                WorkerEvtEnd | WorkerEvtStartStop | WorkerEvtDisconnect, FuriFlagWaitAny, delay);
 
             if(!(flags & FuriFlagError)) {
                 if(flags & WorkerEvtEnd) {
@@ -205,11 +210,15 @@ static int32_t clippy_bad_usb_worker(void* context) {
                 (flags == (unsigned)FuriFlagErrorTimeout) ||
                 (flags == (unsigned)FuriFlagErrorResource)) {
                 // TODO: check error
-                ducky_string(bad_usb, furi_string_get_cstr(bad_usb->string_print));
-                worker_state = ClippyBadUsbStateIdle;
-                bad_usb->st.state = ClippyBadUsbStateDone;
-                bad_usb->hid->release_all(bad_usb->hid_inst);
-                continue;
+                // ducky_string(bad_usb, furi_string_get_cstr(bad_usb->string_print));
+                if(ducky_string_next(bad_usb)) {
+                    worker_state = ClippyBadUsbStateIdle;
+                    bad_usb->st.state = ClippyBadUsbStateDone;
+                    bad_usb->hid->release_all(bad_usb->hid_inst);
+                    continue;
+                } else {
+                    bad_usb->st.string_idx = bad_usb->string_print_pos;
+                }
             } else {
                 furi_check((flags & FuriFlagError) == 0);
             }
@@ -254,16 +263,21 @@ static void clippy_bad_usb_payload_set_default_keyboard_layout(BadUsbPayload* ba
     memcpy(bad_usb->layout, hid_asciimap, MIN(sizeof(hid_asciimap), sizeof(bad_usb->layout)));
 }
 
-BadUsbPayload*
-    clippy_bad_usb_payload_setup(FuriString* string_to_print, BadUsbHidInterface interface) {
+BadUsbPayload* clippy_bad_usb_payload_setup(
+    FuriString* string_to_print,
+    BadUsbHidInterface interface,
+    uint32_t delay) {
     furi_assert(string_to_print);
 
     BadUsbPayload* bad_usb = malloc(sizeof(BadUsbPayload));
+    bad_usb->delay_between_keystrokes = 25 * pow(2, delay);
     bad_usb->string_print = furi_string_alloc();
     furi_string_set(bad_usb->string_print, string_to_print);
     clippy_bad_usb_payload_set_default_keyboard_layout(bad_usb);
 
     bad_usb->st.state = ClippyBadUsbStateInit;
+    bad_usb->st.string_length = furi_string_size(bad_usb->string_print);
+    bad_usb->st.string_idx = 0;
     bad_usb->st.error[0] = '\0';
     bad_usb->hid = bad_usb_hid_get_interface(interface);
 
