@@ -3,6 +3,7 @@
 enum SubmenuIndex {
     ConfigIndexKeyboardLayout,
     ConfigIndexInterface,
+    ConfigIndexDelay,
     ConfigIndexBleUnpair,
 };
 
