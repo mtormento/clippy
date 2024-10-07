@@ -22,7 +22,7 @@
 #include "helpers/bad_usb_hid.h"
 #include "views/clippy_bad_usb_view.h"
 #include "views/clippy_main_view.h"
-#include "clippy_app_icons.h"
+#include "clippy_icons.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
 #define CLIPPY_APP_PATH_LAYOUT_FOLDER APP_ASSETS_PATH("/layouts")

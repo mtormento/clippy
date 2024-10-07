@@ -11,7 +11,7 @@
 
 App(
     # Foldername of the application
-    appid="clippy_app",
+    appid="clippy",
     # name will be show on the Flip.x0 browser
     name="Clippy",
     apptype=FlipperAppType.EXTERNAL,

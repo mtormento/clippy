@@ -1,9 +1,9 @@
 #include "clippy_bad_usb_view.h"
 #include "../helpers/ducky_script.h"
-#include "clippy_app_icons.h"
 #include <toolbox/path.h>
 #include <gui/elements.h>
 #include <assets_icons.h>
+#include "clippy_app_i.h"
 
 #define MAX_NAME_LEN 64
 
