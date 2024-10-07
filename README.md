@@ -14,6 +14,11 @@ Pretty simple, Clippy has 2 modes:
   - you can choose from clipboard items built from the list of strings gathered from clippy.txt
   - selecting one paste the string to the connected device
 
+# Installation
+
+Download the [latest release](https://github.com/mtormento/clippy/releases/latest)
+of the *fap* file and put it into the `apps` folder on your SD card of your Flipper Zero. 
+
 # How do I build this thing?
 ```shell
 cd applications_user
