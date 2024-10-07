@@ -1,5 +1,6 @@
 # Why?
-Has ever happened to you when you are setting up your new smartphone and you are asked for the wifi password to feel the extreme urge to start cursing every known divinity?
+Has ever happened to you when you are setting up your new smartphone and you are asked for the wifi password to feel the extreme urge to start cursing every known divinity? 
+
 Clippy solves this problem by turning your Flipper Zero into a cross-device shared clipboard.
 
 # How does it work?
@@ -12,3 +13,17 @@ Pretty simple, Clippy has 2 modes:
   - turns Flipper Zero into a usb/bt keyboard
   - you can choose from clipboard items built from the list of strings gathered from clippy.txt
   - selecting one paste the string to the connected device
+
+# How do I build this thing?
+```shell
+cd applications_user
+git clone https://github.com/mtormento/clippy.git
+
+cd ..
+
+# Build the application
+./fbt fap_clippy
+
+# Build and launch the application
+./fbt launch APPSRC=clippy
+```
