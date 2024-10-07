@@ -6,6 +6,7 @@
 #include "gui/modules/widget.h"
 #include "gui/view_dispatcher.h"
 #include "helpers/ducky_script.h"
+#include "storage/filesystem_api_defines.h"
 #include "storage/storage.h"
 #include "views/clippy_bad_usb_view.h"
 #include "views/clippy_mass_storage_view.h"
@@ -18,6 +19,7 @@
 #define CLIPPY_SETTINGS_FILE_TYPE      "Flipper Clippy Settings File"
 #define CLIPPY_SETTINGS_VERSION        1
 #define CLIPPY_SETTINGS_DEFAULT_LAYOUT CLIPPY_APP_PATH_LAYOUT_FOLDER "/en-US.kl"
+#define CLIPPY_IMAGE_FILE              "fat.img"
 
 static bool clippy_app_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
@@ -121,7 +123,7 @@ static void clippy_save_settings(ClippyApp* app) {
 ClippyApp* clippy_app_alloc() {
     ClippyApp* app = malloc(sizeof(ClippyApp));
 
-    app->fat_image_file_path = furi_string_alloc_set_str(APP_ASSETS_PATH("fat.img"));
+    app->fat_image_file_path = furi_string_alloc_set_str(APP_DATA_PATH(CLIPPY_IMAGE_FILE));
     app->string_to_print = furi_string_alloc();
     app->keyboard_layout = furi_string_alloc();
     app->delay = 0;
@@ -131,6 +133,11 @@ ClippyApp* clippy_app_alloc() {
     app->gui = furi_record_open(RECORD_GUI);
     app->fs_api = furi_record_open(RECORD_STORAGE);
     app->dialogs = furi_record_open(RECORD_DIALOGS);
+
+    if(!storage_file_exists(app->fs_api, APP_DATA_PATH(CLIPPY_IMAGE_FILE))) {
+        storage_common_copy(
+            app->fs_api, APP_ASSETS_PATH(CLIPPY_IMAGE_FILE), APP_DATA_PATH(CLIPPY_IMAGE_FILE));
+    }
 
     app->view_dispatcher = view_dispatcher_alloc();
     app->scene_manager = scene_manager_alloc(&clippy_scene_handlers, app);
