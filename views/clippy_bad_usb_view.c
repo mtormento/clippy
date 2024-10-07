@@ -1,5 +1,6 @@
 #include "clippy_bad_usb_view.h"
 #include "../helpers/ducky_script.h"
+#include "clippy_app_icons.h"
 #include <toolbox/path.h>
 #include <gui/elements.h>
 #include <assets_icons.h>
@@ -74,11 +75,7 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
         canvas_draw_str_aligned(canvas, 114, 40, AlignRight, AlignBottom, "0");
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
     } else if(state == ClippyBadUsbStateRunning) {
-        if(model->anim_frame == 0) {
-            canvas_draw_icon(canvas, 4, 23, &I_EviSmile1_18x21);
-        } else {
-            canvas_draw_icon(canvas, 4, 23, &I_EviSmile2_18x21);
-        }
+        canvas_draw_icon(canvas, 4, 25, &I_clippy_18x18);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(
             disp_str, "%zu", ((model->state.string_idx) * 100) / (model->state.string_length));
@@ -87,17 +84,13 @@ static void clippy_bad_usb_draw_callback(Canvas* canvas, void* _model) {
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
     } else if(state == ClippyBadUsbStateDone) {
-        canvas_draw_icon(canvas, 4, 23, &I_EviSmile1_18x21);
+        canvas_draw_icon(canvas, 4, 25, &I_Smile_18x18);
         canvas_set_font(canvas, FontBigNumbers);
         canvas_draw_str_aligned(canvas, 114, 40, AlignRight, AlignBottom, "100");
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);
     } else if(state == ClippyBadUsbStateWaitForBtn) {
-        if(model->anim_frame == 0) {
-            canvas_draw_icon(canvas, 4, 23, &I_EviWaiting1_18x21);
-        } else {
-            canvas_draw_icon(canvas, 4, 23, &I_EviWaiting2_18x21);
-        }
+        canvas_draw_icon(canvas, 4, 25, &I_clippy_18x18);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_reset(disp_str);
         canvas_draw_icon(canvas, 117, 26, &I_Percent_10x14);

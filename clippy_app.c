@@ -9,6 +9,7 @@
 #include "storage/storage.h"
 #include "views/clippy_bad_usb_view.h"
 #include "views/clippy_mass_storage_view.h"
+#include "views/clippy_main_view.h"
 #include <furi.h>
 #include <gui/gui.h>
 #include "clippy_app_i.h"
@@ -142,10 +143,19 @@ ClippyApp* clippy_app_alloc() {
     view_dispatcher_set_navigation_event_callback(
         app->view_dispatcher, clippy_app_back_event_callback);
 
+    app->widget = widget_alloc();
+
     // Loading view
     app->loading = loading_alloc();
     view_dispatcher_add_view(
         app->view_dispatcher, ClippyAppViewLoading, loading_get_view(app->loading));
+
+    // Main view
+    app->main_view = clippy_main_view_alloc();
+    view_dispatcher_add_view(
+        app->view_dispatcher,
+        ClippyAppViewCopyPasteSelection,
+        clippy_main_view_get_view(app->main_view));
 
     // Clippy mass storage view
     app->mass_storage_view = clippy_mass_storage_alloc();
@@ -153,11 +163,6 @@ ClippyApp* clippy_app_alloc() {
         app->view_dispatcher,
         ClippyAppViewMassStorageWork,
         clippy_mass_storage_get_view(app->mass_storage_view));
-
-    // Copy/Paste selection
-    app->widget = widget_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, ClippyAppViewCopyPasteSelection, widget_get_view(app->widget));
 
     // Paste item selection
     items_array_init(app->items_array);
@@ -208,8 +213,11 @@ void clippy_app_free(ClippyApp* app) {
         app->bad_usb_payload = NULL;
     }
 
-    // Copy/Paste selection
+    // Widget view
     widget_free(app->widget);
+
+    // Clippy main view
+    clippy_main_view_free(app->main_view);
 
     // Clippy mass storage view
     clippy_mass_storage_free(app->mass_storage_view);

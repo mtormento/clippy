@@ -21,6 +21,8 @@
 #include "helpers/mass_storage_usb.h"
 #include "helpers/bad_usb_hid.h"
 #include "views/clippy_bad_usb_view.h"
+#include "views/clippy_main_view.h"
+#include "clippy_app_icons.h"
 
 #define CLIPPY_APP_BASE_FOLDER        EXT_PATH("clippy")
 #define CLIPPY_APP_PATH_LAYOUT_FOLDER APP_ASSETS_PATH("/layouts")
@@ -53,6 +55,7 @@ struct ClippyApp {
     FuriMutex* usb_mutex;
     MassStorageUsb* usb;
 
+    // BadUsb view
     ClippyBadUsb* bad_usb_view;
     BadUsbHidInterface interface;
     FuriHalUsbInterface* usb_if_prev;
@@ -61,6 +64,9 @@ struct ClippyApp {
     BadUsbPayload* bad_usb_payload;
     FuriString* string_to_print;
     uint32_t delay;
+
+    // Main view
+    ClippyMain* main_view;
 
     uint32_t bytes_read, bytes_written;
 };
