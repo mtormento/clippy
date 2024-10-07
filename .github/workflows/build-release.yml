@@ -46,7 +46,7 @@ jobs:
           echo "RELEASE_TEXT=${RELEASE_TEXT}"
           printenv
       - name: Build application
-        run: cd firmware && ./fbt clippy
+        run: cd firmware && ./fbt fap_clippy
       - name: Create Draft Release
         id: create_release
         uses: actions/create-release@v1
